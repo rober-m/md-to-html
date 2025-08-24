@@ -1,34 +1,39 @@
 module CLI where
 
-import Options.Applicative
-
+import           Options.Applicative
 
 data Options = Options
-  { inputFile :: String
+  { inputFile  :: String
   , outputFile :: String
-  , verbose :: Bool
+  , verbose    :: Bool
   } deriving (Show)
 
+
+cliParser :: IO Options
+cliParser = execParser $ info (options <**> helper) infoModifiers
+
 options :: Parser Options
-options = Options
-  <$> strOption
-      ( long "input"
-     <> short 'i'
-     <> metavar "INPUT_FILE"
-     <> help "Input file to process" )
-  <*> strOption
-      ( long "output"
-     <> short 'o'
-     <> metavar "OUTPUT_FILE"
-     <> help "Output file to write results" )
-  <*> switch
-      ( long "verbose"
-     <> short 'v'
-     <> help "Enable verbose output" )
+options = Options <$>
+    strOption
+      (  short 'i'
+      <> long "input"
+      <> help "Input file to process"
+      <> metavar "INPUT_FILE"
+      )
+    <*> strOption
+      (  short 'o'
+      <> long "output"
+      <> help "Output file to write results"
+      <> metavar "OUTPUT_FILE"
+      )
+    <*> switch
+      (  short 'v'
+      <> long "verbose"
+      <> help "Enable verbose output"
+      )
 
+infoModifiers :: InfoMod Options
+infoModifiers = fullDesc
+  <> progDesc "Process an input file and write results to an output file"
+  <> header "CLI Tool - A simple command line interface for file processing"
 
-cliParser :: ParserInfo Options
-cliParser = info (options <**> helper)
-  ( fullDesc
- <> progDesc "Provide a Markdown input file to obtain an HTML output file"
- <> header "CLI Tool - A simple command line to convert Markdown to HTML" )

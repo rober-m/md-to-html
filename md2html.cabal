@@ -1,5 +1,5 @@
 cabal-version:      3.0
-name:               md-to-html
+name:               md2html
 description:        A simple command-line tool to convert Markdown files to HTML. Made to teach Haskell.
 version:            0.1.0.0
 license:            BSD-3-Clause
@@ -13,7 +13,7 @@ extra-doc-files:    CHANGELOG.md
 common warnings
     ghc-options: -Wall
 
-executable md-to-html
+executable md2html
     -- Import common warning flags.
     import:           warnings
 
@@ -22,7 +22,7 @@ executable md-to-html
 
     -- Modules included in this executable, other than Main.
     other-modules:    CLI
-                      Parser
+                      MdParser
                       ToHTML
 
     -- LANGUAGE extensions used by modules in this package.
@@ -33,7 +33,6 @@ executable md-to-html
                     , optparse-applicative
                     , text
                     , megaparsec
-                    , parser-combinators
 
     -- Directories containing source files.
     hs-source-dirs:   app

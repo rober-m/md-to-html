@@ -1,13 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Parser where
+module MdParser where
 
-import Control.Monad (void, when)
-import Data.Text (Text)
-import Data.Void (Void)
-import Text.Megaparsec
-import Text.Megaparsec.Char (char, digitChar, newline, space1)
-import Prelude hiding (lines)
+import           Control.Monad
+import           Data.Text            (Text)
+import           Data.Void
+import           Text.Megaparsec
+import           Text.Megaparsec.Char
 
 type MDParser = Parsec Void Text
 
@@ -16,33 +15,33 @@ newtype ListItem = ListItem [MdElem]
 
 data MdElem
     = PlainText Text
-    | Paragraph [MdElem]
     | Bold MdElem
     | Italic MdElem
     | Heading Int MdElem
+    | Paragraph [MdElem]
     | OrderedList [ListItem]
     | UnorderedList [ListItem]
     deriving (Show, Eq)
 
-mainParser :: MDParser [MdElem]
-mainParser = do
-    skipSpaces
-    elements <- some parseGroupElement
-    eof
-    pure elements
+-- 1
+parseText :: MDParser MdElem
+parseText = PlainText <$> takeWhile1P (Just "plain text") (`notElem` ['*', '_', '\n'])
 
-skipSpaces :: MDParser ()
-skipSpaces = void $ many (space1 <|> void newline)
+-- 2 (with `where` clause using `between` instead of `parseBetween`. Replace when `parseBetween` is defined.)
+parseBold :: MDParser MdElem
+parseBold = label "bold text" $ do
+    Bold <$> (parseBetween "**" <|> parseBetween "__")
 
-parseGroupElement :: MDParser MdElem
-parseGroupElement =
-    choice
-        [ parseHeading
-        , parseOrderedList
-        , parseUnorderedList
-        , parseParagraph
-        ]
+-- 3 (with `where` clause using `between` instead of `parseBetween`. Replace when `parseBetween` is defined.)
+parseItalic :: MDParser MdElem
+parseItalic = label "italic text" $ do
+    Italic <$> (parseBetween "*" <|> parseBetween "_")
 
+-- 4 (with `parseText` instead of `parseLineElement`. Replace when `parseLineElement` is defined)
+parseBetween :: Text -> MDParser MdElem
+parseBetween str = between (chunk str) (chunk str) parseLineElement
+
+-- 5
 parseLineElement :: MDParser MdElem
 parseLineElement =
     choice
@@ -51,6 +50,7 @@ parseLineElement =
         , parseText
         ]
 
+-- 6
 parseHeading :: MDParser MdElem
 parseHeading = label "heading" $ do
     level <- length <$> some (char '#')
@@ -59,6 +59,7 @@ parseHeading = label "heading" $ do
     space1
     Heading level <$> parseLineElement
 
+-- 7
 parseParagraph :: MDParser MdElem
 parseParagraph = label "paragraph" $ do
     skipSpaces
@@ -66,6 +67,11 @@ parseParagraph = label "paragraph" $ do
     skipSpaces
     pure $ Paragraph elements
 
+-- 8 (define inside 6 and extract it)
+skipSpaces :: MDParser ()
+skipSpaces = void $ many (space1 <|> void newline)
+
+-- 9
 parseOrderedList :: MDParser MdElem
 parseOrderedList = label "ordered list" $ do
     OrderedList <$> some parseListItem
@@ -77,6 +83,7 @@ parseOrderedList = label "ordered list" $ do
         skipSpaces
         pure $ ListItem elements
 
+-- 10
 parseUnorderedList :: MDParser MdElem
 parseUnorderedList = label "unordered list" $ do
     UnorderedList <$> some parseListItem
@@ -88,16 +95,21 @@ parseUnorderedList = label "unordered list" $ do
         skipSpaces
         pure $ ListItem elements
 
-parseBetween :: Text -> MDParser MdElem
-parseBetween str = between (chunk str) (chunk str) parseLineElement
 
-parseBold :: MDParser MdElem
-parseBold = label "bold text" $ do
-    Bold <$> (parseBetween "**" <|> parseBetween "__")
+-- 11
+parseGroupElement :: MDParser MdElem
+parseGroupElement =
+    choice
+        [ parseHeading
+        , parseOrderedList
+        , parseUnorderedList
+        , parseParagraph
+        ]
 
-parseItalic :: MDParser MdElem
-parseItalic = label "italic text" $ do
-    Italic <$> (parseBetween "*" <|> parseBetween "_")
-
-parseText :: MDParser MdElem
-parseText = PlainText <$> takeWhile1P (Just "plain text") (`notElem` ['*', '_', '\n'])
+-- 12
+mainParser :: MDParser [MdElem]
+mainParser = do
+    skipSpaces
+    elements <- some parseGroupElement
+    eof
+    pure elements

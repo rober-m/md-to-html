@@ -1,17 +1,16 @@
 {-# LANGUAGE RecordWildCards #-}
 module Main where
 
+import           CLI             (Options (..), cliParser)
+import           Control.Monad   (when)
 import qualified Data.Text.IO    as TIO
-import           Parser          (mainParser)
+import           MdParser        (mainParser)
 import           Text.Megaparsec (parse)
 import           ToHTML          (toHTML)
-import           Options.Applicative (execParser)
-import           CLI (cliParser, Options(..))
-import           Control.Monad (when)
 
 main :: IO ()
 main = do
-    Options{..} <- execParser cliParser
+    Options{..} <- cliParser
     fileContent <- TIO.readFile inputFile
     when verbose $ do
         mapM_ print [ "----------------------------------------------------------"

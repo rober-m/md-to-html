@@ -4,7 +4,7 @@ module ToHTML where
 
 import           Data.Text (Text)
 import qualified Data.Text as T
-import           Parser    (ListItem (..), MdElem (..))
+import           MdParser  (ListItem (..), MdElem (..))
 
 toHTML :: [MdElem] -> Text
 toHTML = foldr (\el acc -> elemToHTML el <> acc) ""
@@ -16,5 +16,7 @@ elemToHTML (Heading level el) =
     "<h" <> T.pack (show level) <> ">" <> elemToHTML el <> "</h" <> T.pack (show level) <> ">"
 elemToHTML (Bold el) = "<strong>" <> elemToHTML el <> "</strong>"
 elemToHTML (Italic el) = "<em>" <> elemToHTML el <> "</em>"
-elemToHTML (OrderedList items) = "<ol>" <> foldr (\(ListItem elements) acc -> "<li>" <> toHTML elements <> "</li>" <> acc) "" items <> "</ol>"
-elemToHTML (UnorderedList items) = "<ul>" <> foldr (\(ListItem elements) acc -> "<li>" <> toHTML elements <> "</li>" <> acc) "" items <> "</ul>"
+elemToHTML (OrderedList items) =
+    "<ol>" <> foldr (\(ListItem elements) acc -> "<li>" <> toHTML elements <> "</li>" <> acc) "" items <> "</ol>"
+elemToHTML (UnorderedList items) =
+    "<ul>" <> foldr (\(ListItem elements) acc -> "<li>" <> toHTML elements <> "</li>" <> acc) "" items <> "</ul>"
