@@ -62,14 +62,10 @@ parseHeading = label "heading" $ do
 -- 7
 parseParagraph :: MDParser MdElem
 parseParagraph = label "paragraph" $ do
-    skipSpaces
+    skipSome space1
     elements <- some parseLineElement
-    skipSpaces
+    skipSome space1
     pure $ Paragraph elements
-
--- 8 (define inside 6 and extract it)
-skipSpaces :: MDParser ()
-skipSpaces = void $ many (space1 <|> void newline)
 
 -- 9
 parseOrderedList :: MDParser MdElem
@@ -80,7 +76,7 @@ parseOrderedList = label "ordered list" $ do
     parseListItem = do
         void $ digitChar >> char '.' >> space1
         elements <- some parseLineElement
-        skipSpaces
+        skipSome space1
         pure $ ListItem elements
 
 -- 10
@@ -92,7 +88,7 @@ parseUnorderedList = label "unordered list" $ do
     parseListItem = do
         void $ oneOf ['-', '*', '+'] >> space1
         elements <- some parseLineElement
-        skipSpaces
+        skipSome space1
         pure $ ListItem elements
 
 
@@ -109,7 +105,7 @@ parseGroupElement =
 -- 12
 mainParser :: MDParser [MdElem]
 mainParser = do
-    skipSpaces
+    skipSome space1
     elements <- some parseGroupElement
     eof
     pure elements
